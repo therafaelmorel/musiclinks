@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Music Links</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: rgba(255,255,255,0.05);
+    --bg-card-hover: rgba(255,255,255,0.08);
+    --bg-input: rgba(255,255,255,0.06);
+    --text: #f0ede8;
+    --text-dim: rgba(240,237,232,0.5);
+    --accent: #c8ff00;
+    --accent-dim: rgba(200,255,0,0.12);
+    --border: rgba(255,255,255,0.08);
+    --border-focus: rgba(200,255,0,0.4);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --danger: #ff5555;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Login Screen ── */
+  .screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .login-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    width: 100%; max-width: 360px;
+    text-align: center;
+  }
+  .login-logo {
+    width: 52px; height: 52px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,255,0,0.2);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .login-logo svg { width: 26px; height: 26px; color: var(--accent); }
+  .login-card h1 {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .login-card p {
+    font-size: 13px; color: var(--text-dim);
+    margin-bottom: 28px;
+  }
+  .login-error {
+    font-size: 13px; color: var(--danger);
+    margin-bottom: 12px; display: none;
+  }
+
+  /* ── Admin Bar ── */
+  .admin-bar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    background: rgba(10,10,15,0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar-title {
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 15px;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .bar-title svg { width: 18px; height: 18px; }
+  .bar-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* ── Main layout ── */
+  .admin-main {
+    max-width: 640px; margin: 0 auto;
+    padding: 28px 20px 80px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+
+  /* ── Cards ── */
+  .admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px; height: 13px;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field > label {
+    display: block;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-bottom: 6px;
+  }
+  .field input[type="text"],
+  .field input[type="url"],
+  .field input[type="password"],
+  .field select {
+    width: 100%;
+    padding: 10px 13px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--border-focus);
+    background: rgba(200,255,0,0.03);
+  }
+  .field input::placeholder { color: rgba(240,237,232,0.22); }
+  .field select option { background: #1a1a24; }
+  .field-hint {
+    font-size: 11px; color: var(--text-dim);
+    margin-top: 5px; opacity: 0.7;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 80px; gap: 12px; }
+
+  /* ── Platform rows ── */
+  .platform-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .platform-row:last-child { border-bottom: none; }
+  .platform-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .platform-name {
+    font-size: 13px; font-weight: 500;
+    width: 115px; flex-shrink: 0;
+  }
+  .platform-url {
+    flex: 1;
+    padding: 8px 11px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .platform-url:focus { border-color: var(--border-focus); }
+  .platform-url::placeholder { color: rgba(240,237,232,0.2); }
+
+  /* ── Toggle ── */
+  .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: 0.25s ease;
+  }
+  .toggle-track::before {
+    content: '';
+    position: absolute;
+    width: 13px; height: 13px;
+    left: 3px; top: 50%;
+    transform: translateY(-50%);
+    background: rgba(240,237,232,0.4);
+    border-radius: 50%;
+    transition: 0.25s ease;
+  }
+  .toggle input:checked + .toggle-track {
+    background: var(--accent-dim);
+    border-color: rgba(200,255,0,0.3);
+  }
+  .toggle input:checked + .toggle-track::before {
+    transform: translateX(17px) translateY(-50%);
+    background: var(--accent);
+  }
+
+  /* ── Track rows ── */
+  .track-row {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .track-row:last-child { border-bottom: none; }
+  .track-fields { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .track-top { display: grid; grid-template-columns: 1fr auto auto; gap: 7px; }
+  .track-fields input[type="text"],
+  .track-fields input[type="url"],
+  .track-fields select {
+    padding: 8px 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .track-fields input:focus, .track-fields select:focus { border-color: var(--border-focus); }
+  .track-fields input::placeholder { color: rgba(240,237,232,0.2); }
+  .track-fields select option { background: #1a1a24; }
+  .year-input { width: 72px; }
+  .btn-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-size: 20px; line-height: 1;
+    padding: 6px 4px;
+    border-radius: 6px;
+    transition: all 0.2s; flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .btn-remove:hover { color: var(--danger); background: rgba(255,85,85,0.1); }
+  .btn-add {
+    width: 100%; margin-top: 14px;
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.14);
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 500;
+    padding: 10px; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-add:hover { border-color: rgba(200,255,0,0.3); color: var(--accent); }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none; border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent); color: #0a0a0f;
+    border-color: var(--accent); font-weight: 600;
+  }
+  .btn-primary:hover { background: #d4ff1a; }
+  .btn-ghost {
+    background: transparent; color: var(--text-dim);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg-card-hover); color: var(--text); border-color: rgba(255,255,255,0.12); }
+  .btn-danger {
+    background: rgba(255,85,85,0.1); color: var(--danger);
+    border-color: rgba(255,85,85,0.2);
+  }
+  .btn-danger:hover { background: rgba(255,85,85,0.2); }
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  /* ── Danger card ── */
+  .danger-card {
+    border-color: rgba(255,85,85,0.15);
+  }
+  .danger-card .card-title { color: var(--danger); }
+  .danger-card .card-title::before { background: var(--danger); }
+  .danger-card p { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; }
+
+  /* ── Error / info ── */
+  .field-error {
+    font-size: 12px; color: var(--danger);
+    margin-top: 6px; display: none;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--accent); color: #0a0a0f;
+    font-weight: 600; font-size: 13px;
+    padding: 10px 22px; border-radius: 100px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 200; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .admin-bar { padding: 12px 16px; }
+    .admin-main { padding: 20px 14px 80px; }
+    .admin-card { padding: 18px 16px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .platform-name { width: 85px; }
+    .bar-title span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN SCREEN ─── -->
+<div id="login-screen" class="screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <h1>Admin Access</h1>
+    <p>Music Links Dashboard</p>
+    <div class="field">
+      <input type="password" id="pwd-input" placeholder="Enter password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="login-error">Incorrect password. Try again.</div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
+<!-- ─── ADMIN PANEL ─── -->
+<div id="admin-panel" style="display:none">
+
+  <header class="admin-bar">
+    <div class="bar-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+      </svg>
+      <span>Music Links Admin</span>
+    </div>
+    <div class="bar-actions">
+      <a href="music-links.html" target="_blank" class="btn btn-ghost btn-sm">View Site</a>
+      <button class="btn btn-primary btn-sm" onclick="saveData()">Save Changes</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- Artist Profile -->
+    <section class="admin-card">
+      <div class="card-title">Artist Profile</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Artist Name</label>
+          <input type="text" id="artist-name" placeholder="Your Name">
+        </div>
+        <div class="field">
+          <label>Initials</label>
+          <input type="text" id="artist-initials" placeholder="YN" maxlength="3">
+          <div class="field-hint">Shows in avatar if no photo</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tagline / Genre</label>
+        <input type="text" id="artist-tagline" placeholder="Melodic House · Electronic">
+      </div>
+    </section>
+
+    <!-- Featured Release -->
+    <section class="admin-card">
+      <div class="card-title">Featured Release</div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="feat-title" placeholder="Song or Album Title">
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Badge Text</label>
+          <input type="text" id="feat-tag" placeholder="New">
+          <div class="field-hint">e.g. New, Hot, Out Now</div>
+        </div>
+        <div class="field">
+          <label>Release Type</label>
+          <select id="feat-type">
+            <option value="Single">Single</option>
+            <option value="EP">EP</option>
+            <option value="Album">Album</option>
+            <option value="Remix">Remix</option>
+            <option value="Mixtape">Mixtape</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Year</label>
+          <input type="text" id="feat-year" placeholder="2026" maxlength="4">
+        </div>
+      </div>
+      <div class="field">
+        <label>Link URL</label>
+        <input type="url" id="feat-link" placeholder="https://open.spotify.com/...">
+        <div class="field-hint">Where tapping the featured card goes</div>
+      </div>
+    </section>
+
+    <!-- Streaming Platforms -->
+    <section class="admin-card">
+      <div class="card-title">Streaming Platforms</div>
+      <div id="platforms-list"></div>
+    </section>
+
+    <!-- More Tracks -->
+    <section class="admin-card">
+      <div class="card-title">More Tracks</div>
+      <div id="tracks-list"></div>
+      <button class="btn-add" onclick="addTrack()">+ Add Track</button>
+    </section>
+
+    <!-- Social Links -->
+    <section class="admin-card">
+      <div class="card-title">Social Links</div>
+      <div class="field">
+        <label>Instagram</label>
+        <input type="url" id="social-instagram" placeholder="https://instagram.com/yourname">
+      </div>
+      <div class="field">
+        <label>TikTok</label>
+        <input type="url" id="social-tiktok" placeholder="https://tiktok.com/@yourname">
+      </div>
+      <div class="field">
+        <label>Twitter / X</label>
+        <input type="url" id="social-twitter" placeholder="https://x.com/yourname">
+      </div>
+    </section>
+
+    <!-- Change Password -->
+    <section class="admin-card">
+      <div class="card-title">Change Password</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>New Password</label>
+          <input type="password" id="new-pwd" placeholder="Enter new password">
+        </div>
+        <div class="field">
+          <label>Confirm</label>
+          <input type="password" id="confirm-pwd" placeholder="Repeat password">
+        </div>
+      </div>
+      <div class="field-error" id="pwd-error"></div>
+      <button class="btn btn-ghost btn-sm" onclick="changePassword()">Update Password</button>
+    </section>
+
+    <!-- Danger Zone -->
+    <section class="admin-card danger-card">
+      <div class="card-title">Reset</div>
+      <p>Clear all saved data and restore the default placeholder content.</p>
+      <button class="btn btn-danger btn-sm" onclick="resetData()">Reset to Defaults</button>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var DATA_KEY    = 'musiclinks_data';
+var PWD_KEY     = 'musiclinks_password';
+var SESSION_KEY = 'musiclinks_authed';
+
+// ── Change this default password! ───────────────────────────────────
+var DEFAULT_PASSWORD = 'musiclinks';
+// ────────────────────────────────────────────────────────────────────
+
+var PLATFORM_META = [
+  { id: 'spotify',    name: 'Spotify',       color: '#1ed760' },
+  { id: 'apple',      name: 'Apple Music',   color: '#fc3c44' },
+  { id: 'soundcloud', name: 'SoundCloud',    color: '#ff8800' },
+  { id: 'youtube',    name: 'YouTube Music', color: '#ff4040' },
+  { id: 'tidal',      name: 'Tidal',         color: '#cccccc' },
+  { id: 'amazon',     name: 'Amazon Music',  color: '#25d1da' },
+];
+
+var DEFAULTS = {
+  artist: { name: 'Your Name', tagline: 'Melodic House · Electronic', initials: 'YN' },
+  featured: { title: 'Song Title', tag: 'New', type: 'Single', year: '2026', link: '' },
+  platforms: PLATFORM_META.map(function (p) { return { id: p.id, url: '', enabled: true }; }),
+  tracks: [
+    { title: 'Track Name',    type: 'Single', year: '2025', url: '' },
+    { title: 'Another Track', type: 'EP',     year: '2025', url: '' },
+    { title: 'Third Release', type: 'Single', year: '2024', url: '' },
+  ],
+  socials: { instagram: '', tiktok: '', twitter: '' },
+};
+
+// ── Auth ─────────────────────────────────────────────────────────────
+
+function getPassword() {
+  return localStorage.getItem(PWD_KEY) || DEFAULT_PASSWORD;
+}
+
+function doLogin() {
+  var input = document.getElementById('pwd-input').value;
+  var err = document.getElementById('login-error');
+  if (input === getPassword()) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = '';
+    loadForm();
+    document.getElementById('pwd-input').value = '';
+  } else {
+    err.style.display = '';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function changePassword() {
+  var n = document.getElementById('new-pwd').value;
+  var c = document.getElementById('confirm-pwd').value;
+  var err = document.getElementById('pwd-error');
+  if (!n) { err.textContent = 'Please enter a new password.'; err.style.display = ''; return; }
+  if (n !== c) { err.textContent = 'Passwords do not match.'; err.style.display = ''; return; }
+  localStorage.setItem(PWD_KEY, n);
+  err.style.display = 'none';
+  document.getElementById('new-pwd').value = '';
+  document.getElementById('confirm-pwd').value = '';
+  showToast('Password updated!');
+}
+
+// ── Data ─────────────────────────────────────────────────────────────
+
+function loadData() {
+  try {
+    var s = localStorage.getItem(DATA_KEY);
+    if (s) {
+      var p = JSON.parse(s);
+      return {
+        artist:    Object.assign({}, DEFAULTS.artist,   p.artist   || {}),
+        featured:  Object.assign({}, DEFAULTS.featured, p.featured || {}),
+        platforms: p.platforms || DEFAULTS.platforms,
+        tracks:    p.tracks    || DEFAULTS.tracks,
+        socials:   Object.assign({}, DEFAULTS.socials,  p.socials  || {}),
+      };
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+
+function loadForm() {
+  var d = loadData();
+
+  // Artist
+  document.getElementById('artist-name').value     = d.artist.name;
+  document.getElementById('artist-tagline').value  = d.artist.tagline;
+  document.getElementById('artist-initials').value = d.artist.initials;
+
+  // Featured
+  document.getElementById('feat-title').value = d.featured.title;
+  document.getElementById('feat-tag').value   = d.featured.tag;
+  document.getElementById('feat-type').value  = d.featured.type;
+  document.getElementById('feat-year').value  = d.featured.year;
+  document.getElementById('feat-link').value  = d.featured.link;
+
+  // Platforms
+  renderPlatforms(d.platforms);
+
+  // Tracks
+  renderTracks(d.tracks);
+
+  // Socials
+  document.getElementById('social-instagram').value = d.socials.instagram;
+  document.getElementById('social-tiktok').value    = d.socials.tiktok;
+  document.getElementById('social-twitter').value   = d.socials.twitter;
+}
+
+function saveData() {
+  var data = {
+    artist: {
+      name:     document.getElementById('artist-name').value.trim(),
+      tagline:  document.getElementById('artist-tagline').value.trim(),
+      initials: document.getElementById('artist-initials').value.trim(),
+    },
+    featured: {
+      title: document.getElementById('feat-title').value.trim(),
+      tag:   document.getElementById('feat-tag').value.trim() || 'New',
+      type:  document.getElementById('feat-type').value,
+      year:  document.getElementById('feat-year').value.trim(),
+      link:  document.getElementById('feat-link').value.trim(),
+    },
+    platforms: collectPlatforms(),
+    tracks:    collectTracks(),
+    socials: {
+      instagram: document.getElementById('social-instagram').value.trim(),
+      tiktok:    document.getElementById('social-tiktok').value.trim(),
+      twitter:   document.getElementById('social-twitter').value.trim(),
+    },
+  };
+  localStorage.setItem(DATA_KEY, JSON.stringify(data));
+  showToast('Changes saved!');
+}
+
+function resetData() {
+  if (!confirm('Reset all content to defaults? This cannot be undone.')) return;
+  localStorage.removeItem(DATA_KEY);
+  loadForm();
+  showToast('Reset to defaults.');
+}
+
+// ── Platforms ────────────────────────────────────────────────────────
+
+function renderPlatforms(platforms) {
+  var container = document.getElementById('platforms-list');
+  container.innerHTML = '';
+  PLATFORM_META.forEach(function (meta) {
+    var p = platforms.find(function (x) { return x.id === meta.id; }) || { id: meta.id, url: '', enabled: true };
+    var row = document.createElement('div');
+    row.className = 'platform-row';
+    row.dataset.platformId = meta.id;
+
+    var toggle = document.createElement('label');
+    toggle.className = 'toggle';
+    var chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = p.enabled !== false;
+    var track = document.createElement('span');
+    track.className = 'toggle-track';
+    toggle.appendChild(chk);
+    toggle.appendChild(track);
+
+    var dot = document.createElement('div');
+    dot.className = 'platform-dot';
+    dot.style.background = meta.color;
+
+    var name = document.createElement('span');
+    name.className = 'platform-name';
+    name.textContent = meta.name;
+
+    var url = document.createElement('input');
+    url.type = 'url';
+    url.className = 'platform-url';
+    url.placeholder = 'Paste your ' + meta.name + ' link\u2026';
+    url.value = p.url || '';
+
+    row.appendChild(toggle);
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(url);
+    container.appendChild(row);
+  });
+}
+
+function collectPlatforms() {
+  return Array.from(document.querySelectorAll('.platform-row[data-platform-id]')).map(function (row) {
+    return {
+      id:      row.dataset.platformId,
+      enabled: row.querySelector('input[type="checkbox"]').checked,
+      url:     row.querySelector('input[type="url"]').value.trim(),
+    };
+  });
+}
+
+// ── Tracks ────────────────────────────────────────────────────────────
+
+function renderTracks(tracks) {
+  var container = document.getElementById('tracks-list');
+  container.innerHTML = '';
+  tracks.forEach(function (t) { appendTrackRow(t); });
+}
+
+function addTrack() {
+  appendTrackRow({ title: '', type: 'Single', year: String(new Date().getFullYear()), url: '' });
+  var rows = document.querySelectorAll('.track-row');
+  rows[rows.length - 1].querySelector('input[data-f="title"]').focus();
+}
+
+function appendTrackRow(track) {
+  var container = document.getElementById('tracks-list');
+  var row = document.createElement('div');
+  row.className = 'track-row';
+
+  var fields = document.createElement('div');
+  fields.className = 'track-fields';
+
+  // Top row: title + type + year
+  var top = document.createElement('div');
+  top.className = 'track-top';
+
+  var titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.dataset.f = 'title';
+  titleInput.placeholder = 'Track title';
+  titleInput.value = track.title || '';
+
+  var typeSelect = document.createElement('select');
+  typeSelect.dataset.f = 'type';
+  ['Single', 'EP', 'Album', 'Remix', 'Mixtape'].forEach(function (opt) {
+    var o = document.createElement('option');
+    o.value = opt;
+    o.textContent = opt;
+    if (track.type === opt) o.selected = true;
+    typeSelect.appendChild(o);
+  });
+
+  var yearInput = document.createElement('input');
+  yearInput.type = 'text';
+  yearInput.dataset.f = 'year';
+  yearInput.className = 'year-input';
+  yearInput.placeholder = 'Year';
+  yearInput.maxLength = 4;
+  yearInput.value = track.year || '';
+
+  top.appendChild(titleInput);
+  top.appendChild(typeSelect);
+  top.appendChild(yearInput);
+
+  // URL row
+  var urlInput = document.createElement('input');
+  urlInput.type = 'url';
+  urlInput.dataset.f = 'url';
+  urlInput.placeholder = 'Link URL (Spotify, SoundCloud\u2026)';
+  urlInput.value = track.url || '';
+
+  fields.appendChild(top);
+  fields.appendChild(urlInput);
+
+  var removeBtn = document.createElement('button');
+  removeBtn.className = 'btn-remove';
+  removeBtn.title = 'Remove track';
+  removeBtn.textContent = '\u00d7';
+  removeBtn.onclick = function () { row.remove(); };
+
+  row.appendChild(fields);
+  row.appendChild(removeBtn);
+  container.appendChild(row);
+}
+
+function collectTracks() {
+  return Array.from(document.querySelectorAll('.track-row')).map(function (row) {
+    return {
+      title: row.querySelector('[data-f="title"]').value.trim(),
+      type:  row.querySelector('[data-f="type"]').value,
+      year:  row.querySelector('[data-f="year"]').value.trim(),
+      url:   row.querySelector('[data-f="url"]').value.trim(),
+    };
+  }).filter(function (t) { return t.title; });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+
+var toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2500);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = '';
+  loadForm();
+} else {
+  // Focus password field
+  document.getElementById('pwd-input').focus();
+}
+</script>
+</body>
+</html>
